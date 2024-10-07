@@ -230,7 +230,7 @@ int main(void)
 	
 	while(1)
 	{	
-		//Hopefully this will never runs )))))
+		//Hopefully this will never run )))))
 	}
 }
 ```
