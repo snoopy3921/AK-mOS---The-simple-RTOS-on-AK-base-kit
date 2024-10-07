@@ -239,6 +239,28 @@ int main(void)
 	}
 }
 ```
+### 5. Additional
+Using interrupt by "deferred interrupt handling". It is better to create a interrupt task with a high enough priority that wait for signal (msg) from interrupt.
+``` C
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+void EXTI0_IRQHandler(void)
+{
+	ENTER_CRITICAL();
+	if (EXTI_GetITStatus(EXTI_Line0) != RESET) 
+	{		
+		os_task_post_msg_pure (TASK_BUTTON_INTERRUPT_ID, INTERRUPT_TRIGGER_SIGNAL);
+		EXTI_ClearITPendingBit(EXTI_Line0);
+	}
+	EXIT_CRITICAL();
+}
+#ifdef __cplusplus
+}
+#endif
+```
+**NOTE: If application is C++ function names are mangled by the compiler, so the linker cannot match the name in the vector table to the user-written ISR and falls back to the default "weak" handler, usually implemented as an empty infinite loop. The canonical way to avoid name mangling in C++ is to enclose the given function (ISR) into extern "C"{} block.**
 ## Notes
 ``` C
 SYS_PRINT("	THE END!	");
