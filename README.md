@@ -152,9 +152,5 @@ Task can wait for msg with timeout or indefinitely (as it delays indefinitely). 
 After consuming msg. If you don't have intention to use it after. It is required to free msg to give msg back to msg pool and give memmory back to kernel (In case using dynamic msg).
 Call free msg with this API:
 ``` C
-  void os_task_post_msg_dynamic(uint8_t des_task_id, void *p_content, uint8_t msg_size);
-
-  void os_task_post_msg_pure(uint8_t des_task_id, int32_t sig);
-
-  msg_t *os_task_wait_for_msg(uint32_t time_out);
+  void os_msg_free(msg_t *p_msg);
 ```
