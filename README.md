@@ -1,5 +1,5 @@
 # AK-mOS - The simple RTOS on AK base kit
- AK-mOS is a mini embedded operating system developed based on theory freeRTOS which has the following features:
+ AK-mOS is a mini embedded operating system developed based on freeRTOS which has the following features:
 - Preemptive scheduling
 - Round-robin scheduling
 - Inner tasks communiation
@@ -119,18 +119,42 @@ void task_2(void *p_arg)
 ```
 APIs:
 
-- Delay an amount of ticks (normally 1 tick = 1ms), pass OS_CFG_DELAY_MAX to block forever till the task get an unblock event.
+- Delay an amount of ticks (normally 1 tick = 1ms), pass OS_CFG_DELAY_MAX to block indefinitely till the task get an unblock event.
 ``` C
 void os_task_delay(const uint32_t tick_to_delay);
 ```
 
-### 2. Memory allocation and dealocation
+### 3. Memory allocation and dealocation
 Using first-fit allocation that make the use of memory simple, effective and minimize memory fragmentaion, but it costs disadvantages, mainly on performance if the frequency alloc and free was pretty high.
 
 APIs:
 
 ``` C
    void *os_mem_malloc(size_t size);	// In bytes
+
    void os_mem_free(void *p_addr);
 ```
 These APIs are internally used in kernel to manage memmory of task and messages, but can also use in applcation if needed, of instead using APIs from "stdlib.h" (malloc and free)
+### 3. Communication (messages)
+Kernel has one pool to store free messages. Firstly all the messages is kept in message pool. There are 2 types of msg:
+- Pure msg contains only signal type int16_t
+- Dynamic msg contains pointer to data block and size of that data block
+APIs:
+``` C
+  void os_task_post_msg_dynamic(uint8_t des_task_id, void *p_content, uint8_t msg_size);
+
+  void os_task_post_msg_pure(uint8_t des_task_id, int32_t sig);
+
+  msg_t *os_task_wait_for_msg(uint32_t time_out);
+```
+Recommendation using communicated APIs:
+Task can wait for msg with timeout or indefinitely (as it delays indefinitely). Retrieving msg from "os_task_wait_for_msg", msg could be NULL (timeout expired) or success.
+After consuming msg. If you don't have intention to use it after. It is required to free msg to give msg back to msg pool and give memmory back to kernel (In case using dynamic msg).
+Call free msg with this API:
+``` C
+  void os_task_post_msg_dynamic(uint8_t des_task_id, void *p_content, uint8_t msg_size);
+
+  void os_task_post_msg_pure(uint8_t des_task_id, int32_t sig);
+
+  msg_t *os_task_wait_for_msg(uint32_t time_out);
+```
