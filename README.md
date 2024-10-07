@@ -1,8 +1,12 @@
 # AK-mOS - The simple RTOS on AK base kit
- AK-mOS is a mini embedded operating system developed based on freeRTOS which has the following features:
+![ak-embedded-software-logo](https://github.com/user-attachments/assets/fff9e8d5-2080-4dbd-bcd2-4598236fa935)
+
+
+AK-mOS is a mini embedded operating system developed based on freeRTOS which has the following features:
 - Preemptive scheduling
 - Round-robin scheduling
 - Inner tasks communiation
+
 ## Port
 Kernel required tick interrupt and context switch (PendSV interrupt) to work properly. Both tick interrupt and context switch written for ARM Cortex-M3 only (AK base kit using Stm32L1). So it will also run fine on Stm32f1.
 
