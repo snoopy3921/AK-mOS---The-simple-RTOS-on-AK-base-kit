@@ -149,6 +149,20 @@ APIs:
 ```
 **Recommendation using communicated APIs:**
 
+Post msg to another task, kernel doesn't support to post msg to self
+- Pure msg post
+``` C
+  #define AC_DISPLAY_BUTTON_MODE_PRESSED (1u)
+
+  os_task_post_msg_pure (TASK_BUZZER_ID, AC_DISPLAY_BUTTON_MODE_PRESSED);
+```
+- Dynamic msg post
+``` C
+  time[3] = {23, 15, 30}; //hour, min, second
+
+  os_task_post_msg_dynamic (TASK_DISPLAY_ID, (void *) &time, sizeof(time));
+```
+
 Task can wait for msg with timeout or indefinitely (as it delays indefinitely). Retrieving msg from "os_task_wait_for_msg", msg could be NULL (timeout expired) or success.
 After consuming msg. If you don't have intention to use it after. It is required to free msg to give msg back to msg pool and give memmory back to kernel (In case using dynamic msg).
 Call free msg with this API:
