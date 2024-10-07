@@ -1,5 +1,6 @@
 # AK-mOS - The simple RTOS on AK base kit
-![ak-embedded-software-logo](https://github.com/user-attachments/assets/fff9e8d5-2080-4dbd-bcd2-4598236fa935)
+![ak-embedded-software-logo](https://github.com/user-attachments/assets/950faf1e-97a8-4c08-8ec5-7a07cee47c2b)
+
 
 
 AK-mOS is a mini embedded operating system developed based on freeRTOS which has the following features:
