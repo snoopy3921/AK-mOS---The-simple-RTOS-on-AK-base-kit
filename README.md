@@ -92,7 +92,7 @@ In task_list.cpp, put parameters for each task in this order (task id, task_func
 - priority of task, the lower, the more important. 0 is the highest priority.
 - msg_queue_size is the size of queue message in task. For tasks that doesn't need to receive message(signal or data), just leave it zero.
 - stk_size is the size allocated for each task. Minimum stack size declared in os_cfg.h.
-  - [**NOTE: With heavy task, increase it. If program doesn't run, increase it!!!**](...)
+  - [**NOTE: With heavy task, increase it. If program doesn't run, increase it!!!**](https://stackoverflow.com/)
 ``` C
 const task_t app_task_table[] = {
     /*************************************************************************/
