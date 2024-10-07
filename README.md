@@ -147,10 +147,79 @@ APIs:
 
   msg_t *os_task_wait_for_msg(uint32_t time_out);
 ```
-Recommendation using communicated APIs:
+**Recommendation using communicated APIs:**
+
 Task can wait for msg with timeout or indefinitely (as it delays indefinitely). Retrieving msg from "os_task_wait_for_msg", msg could be NULL (timeout expired) or success.
 After consuming msg. If you don't have intention to use it after. It is required to free msg to give msg back to msg pool and give memmory back to kernel (In case using dynamic msg).
 Call free msg with this API:
 ``` C
   void os_msg_free(msg_t *p_msg);
+```
+A task consumes msg looks like this:
+- Task wait for msg indefinitely
+``` C
+void task_buzzer(void *p_arg)
+{
+	int play = 0;
+	msg_t * msg; 
+	for(;;)
+	{			
+		msg = os_task_wait_for_msg (OS_CFG_DELAY_MAX);
+		play = msg->sig;
+		os_msg_free(msg);
+		if(play)
+		{
+			/*Play tone*/
+			play = 0;
+		}
+	
+	}
+}
+```
+- Task wait for msg with timeout
+``` C
+void task_display(void *p_arg)
+{
+	msg_t * msg;
+	for(;;)
+	{		
+		msg = os_task_wait_for_msg(1); // Wait for 1ms
+		if(msg!= NULL)
+		{
+			if(msg->sig == 1)
+			{
+				//SYS_PRINT("BUTTON UP RECEIVED\n");
+			}
+			else
+			{
+				//SYS_PRINT("BUTTON DOWN RECEIVED\n");
+			}
+			os_msg_free(msg);
+		}
+		view_render.update();
+	}
+}
+```
+### 4. Ending up in main file
+``` C
+int main(void)
+{
+	//Init system
+	//Init drivers
+	
+	os_init();
+	
+	os_task_create_list((task_t*)app_task_table, TASK_EOT_ID);
+	
+	os_run();
+	
+	
+	while(1)
+	{	
+		//Hopefully this will never runs )))))
+	}
+}
+```
+``` C
+SYS_PRINT("	THE END!	");
 ```
