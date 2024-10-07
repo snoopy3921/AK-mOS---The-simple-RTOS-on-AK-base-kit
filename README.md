@@ -117,3 +117,13 @@ void task_2(void *p_arg)
 	}
 }
 ```
+### 2. Memory allocation and dealocation
+Using first-fit allocation that make the use of memory simple, effective and minimize memory fragmentaion, but it costs disadvantages, mainly on performance if the frequency alloc and free was pretty high.
+
+APIs:
+
+``` C
+   void *os_mem_malloc(size_t size);
+   void os_mem_free(void *p_addr);
+```
+These APIs are internally used in kernel to manage memmory of task and messages, but can also use in applcation if needed, of instead using APIs from "stdlib.h" (malloc and free)
