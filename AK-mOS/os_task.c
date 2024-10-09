@@ -39,6 +39,11 @@ static volatile uint32_t next_tick_to_unblock   = (uint32_t)OS_CFG_DELAY_MAX; /*
 
 static volatile uint8_t sched_is_running        = (uint8_t)OS_FALSE;
 
+uint32_t os_task_get_tick(void)
+{
+    return tick_count;
+}
+
 static void task_idle_func(void *p_arg)
 {
     for (;;)

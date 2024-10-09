@@ -49,6 +49,8 @@ extern "C"
 
   void os_task_create_list(task_t *task_tbl, uint8_t size);
 
+  uint32_t os_task_get_tick(void);
+
   uint8_t os_task_increment_tick(void);
 
   void os_task_delay(const uint32_t tick_to_delay);
