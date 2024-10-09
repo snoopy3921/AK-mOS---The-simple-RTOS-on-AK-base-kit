@@ -4,13 +4,13 @@
 #include "os_msg.h"
 #include "os_prio.h"
 #include "os_task.h"
-#include "system.h"
+//#include "system.h"
 
 static uint16_t critical_nesting_count = (uint16_t)0u;
 
 void assert_log(uint8_t *file, uint32_t line)
 {
-    SYS_PRINT("Assert failed at file: %s, line: %d\n", file, line);
+    //SYS_PRINT("Assert failed at file: %s, line: %d\n", file, line);
 }
 
 void os_critical_enter(void)
