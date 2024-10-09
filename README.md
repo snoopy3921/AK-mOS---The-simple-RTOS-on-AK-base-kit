@@ -1,10 +1,15 @@
 # AK-mOS - The simple RTOS on AK base kit
- AK-mOS is a mini embedded operating system developed based on freeRTOS which has the following features:
+![ak-embedded-software-logo](https://github.com/user-attachments/assets/950faf1e-97a8-4c08-8ec5-7a07cee47c2b)
+
+
+
+AK-mOS is a mini embedded operating system developed based on [freeRTOS](https://github.com/FreeRTOS/FreeRTOS-Kernel) which has the following features:
 - Preemptive scheduling
 - Round-robin scheduling
 - Inner tasks communiation
+
 ## Port
-Kernel required tick interrupt and context switch (PendSV interrupt) to work properly. Both tick interrupt and context switch written for ARM Cortex-M3 only (AK base kit using Stm32L1). So it will also run fine on Stm32f1.
+Kernel required tick interrupt and context switch (PendSV interrupt) to work properly. Both tick interrupt and context switch written for ARM Cortex-M3 only ([AK base kit](https://github.com/epcbtech/ak-base-kit-stm32l151) using Stm32L1). So it will also run fine on Stm32f1.
 
 In file os_cpu.h, change these header files to appropriate microcontroller (ARM-Cortex M3)
 ``` C
@@ -230,10 +235,33 @@ int main(void)
 	
 	while(1)
 	{	
-		//Hopefully this will never runs )))))
+		//Hopefully this will never run )))))
 	}
 }
 ```
+### 5. Additional
+Using interrupt by "deferred interrupt handling". It is better to create a interrupt task with a high enough priority that wait for signal (msg) from interrupt.
+``` C
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+void EXTI0_IRQHandler(void)
+{
+	ENTER_CRITICAL();
+	if (EXTI_GetITStatus(EXTI_Line0) != RESET) 
+	{		
+		os_task_post_msg_pure (TASK_BUTTON_INTERRUPT_ID, INTERRUPT_TRIGGER_SIGNAL);
+		EXTI_ClearITPendingBit(EXTI_Line0);
+	}
+	EXIT_CRITICAL();
+}
+#ifdef __cplusplus
+}
+#endif
+```
+**NOTE: If application is C++ function names are mangled by the compiler, so the linker cannot match the name in the vector table to the user-written ISR and falls back to the default "weak" handler, usually implemented as an empty infinite loop. The canonical way to avoid name mangling in C++ is to enclose the given function (ISR) into extern "C"{} block.**
+## Notes
 ``` C
 SYS_PRINT("	THE END!	");
 ```
