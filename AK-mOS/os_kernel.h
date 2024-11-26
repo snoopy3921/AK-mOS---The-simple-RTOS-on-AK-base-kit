@@ -25,8 +25,8 @@ extern "C"
 #error OS_CFG_PRIO_MAX have to be between 0-255
 #endif
 
-#define OS_TRUE             ((uint8_t)0)
-#define OS_FALSE            ((uint8_t)1)
+#define OS_TRUE             ((uint8_t)1)
+#define OS_FALSE            ((uint8_t)0)
 
 #define os_assert(exp)      ((exp) ? (void)0 : assert_log((uint8_t *)__FILE__, __LINE__))
 
