@@ -16,7 +16,7 @@ extern "C"
 #include <stdint.h>
 
 #define OS_CFG_HEAP_SIZE                  ((size_t)1024 * 3u)
-#define OS_CFG_PRIO_MAX                   (30u)
+#define OS_CFG_PRIO_MAX                   (10u)
 #define OS_CFG_DELAY_MAX                  ((uint32_t)0xffffffffUL)
 
 #define OS_CFG_NUM_OF_TASKS_MAX           (10u)
@@ -25,6 +25,10 @@ extern "C"
 #define OS_CFG_TASK_MSG_Q_SIZE_NORMAL     (8u)
 
 #define OS_CFG_MSG_POOL_SIZE              (32u)
+
+#define OS_CFG_TIMER_POOL_SIZE            (8u)  /* Max num of timer */
+#define OS_CFG_TIMER_TASK_PRI             (0u)  /* Recommend as high as possible */
+
 
 #ifdef __cplusplus
 }

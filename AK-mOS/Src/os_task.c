@@ -2,6 +2,7 @@
 #include "os_kernel.h"
 #include "os_list.h"
 #include "os_mem.h"
+#include "os_timer.h"
 #include "os_prio.h"
 #include "os_cpu.h"
 #include <string.h>
@@ -15,6 +16,15 @@ have bit-0 clear, as it is loaded into the PC on exit from an ISR. */
 #define VALUE_INITIAL_XPSR          (0x01000000)
 
 #define TASK_IDLE_ID                ((task_id_t)OS_CFG_NUM_OF_TASKS_MAX - 1u)
+
+#define TASK_IDLE_PRI               (OS_CFG_PRIO_MAX - 1u)
+
+#define TASK_TIMER_ID               ((task_id_t)OS_CFG_NUM_OF_TASKS_MAX - 2u)
+
+#define TASK_TIMER_PRI              ((uint8_t)OS_CFG_TIMER_TASK_PRI) 
+
+#define TASK_TIMER_STK_SIZE         (100u) 
+
 
 typedef struct task_tcb task_tcb_t;
 
@@ -51,6 +61,14 @@ static void task_idle_func(void *p_arg)
     }
 }
 
+static void task_timer_func(void *p_arg)
+{
+    for (;;)
+    {
+        os_timer_processing();
+    }
+}
+
 struct task_tcb
 {
     volatile uint32_t *stk_ptr;  /* Stack pointer, has to be the first member of TCB        */
@@ -80,6 +98,7 @@ static void init_task_lists(void)
     overflow_dly_task_list_ptr = &dly_task_list_2;
     /********************/
 }
+
 static void task_switch_delay_lists()
 {
     list_t *p_list_temp;
@@ -328,6 +347,14 @@ void os_task_create_list(task_t *task_tbl, uint8_t size)
         task_tcb_list[task_tbl[idx].id] = p_tcb;
         idx++;
     }
+    p_tcb = os_task_create((task_id_t)TASK_TIMER_ID,
+                           (task_func_t)task_timer_func,
+                           (void *)NULL,
+                           (uint8_t)TASK_TIMER_PRI,
+                           (size_t)(OS_CFG_TASK_MSG_Q_SIZE_NORMAL),
+                           (size_t)TASK_TIMER_STK_SIZE);
+    task_tcb_list[TASK_TIMER_ID] = p_tcb;
+
     p_tcb = os_task_create((task_id_t)TASK_IDLE_ID,
                            (task_func_t)task_idle_func,
                            (void *)NULL,
@@ -369,7 +396,7 @@ uint8_t os_task_increment_tick(void)
                 item_value = list_item_get_value(&(p_tcb->state_list_item));
                 if (item_value > const_tick)
                 {
-                    /* It is like recheck (in some case the const tick is overflowed to 0 and recheck the next_tick_to_unblock in overflow list) */
+                    /* Stop condition */
                     next_tick_to_unblock = item_value;
                     break;
                 }
@@ -427,7 +454,7 @@ void os_task_start(void)
     sched_is_running = OS_TRUE;
 }
 
-void os_task_post_msg_dynamic(uint8_t des_task_id, void *p_content, uint8_t msg_size)
+void os_task_post_msg_dynamic(uint8_t des_task_id, int32_t sig, void *p_content, uint8_t msg_size)
 {
     ENTER_CRITICAL();
     if (task_tcb_list[des_task_id] == tcb_curr_ptr)
@@ -442,6 +469,7 @@ void os_task_post_msg_dynamic(uint8_t des_task_id, void *p_content, uint8_t msg_
     {
     case TASK_STATE_SUSPENDED_ON_MSG:
         os_msg_queue_put_dynamic(&(task_tcb_list[des_task_id]->msg_queue),
+                                 sig,
                                  p_content,
                                  msg_size);
 
@@ -465,6 +493,7 @@ void os_task_post_msg_dynamic(uint8_t des_task_id, void *p_content, uint8_t msg_
         break;
     case TASK_STATE_DELAYED_ON_MSG:
         os_msg_queue_put_dynamic(&(task_tcb_list[des_task_id]->msg_queue),
+                                 sig,
                                  p_content,
                                  msg_size);
         /* Is the task waiting on an event ?  If so remove
@@ -489,6 +518,7 @@ void os_task_post_msg_dynamic(uint8_t des_task_id, void *p_content, uint8_t msg_
 
     default:
         os_msg_queue_put_dynamic(&(task_tcb_list[des_task_id]->msg_queue),
+                                 sig,
                                  p_content,
                                  msg_size);
         EXIT_CRITICAL();

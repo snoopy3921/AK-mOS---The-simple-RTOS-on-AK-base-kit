@@ -2,6 +2,7 @@
 
 #include "os_cpu.h"
 #include "os_msg.h"
+#include "os_timer.h"
 #include "os_prio.h"
 #include "os_task.h"
 //#include "system.h"
@@ -10,7 +11,7 @@ static uint16_t critical_nesting_count = (uint16_t)0u;
 
 void assert_log(uint8_t *file, uint32_t line)
 {
-    //SYS_PRINT("Assert failed at file: %s, line: %d\n", file, line);
+    //SYS_PRINT("Assert failed at file: %s:%d\n", file, line);
 }
 
 void os_critical_enter(void)
@@ -50,7 +51,8 @@ os_start_first_task(void)
 void os_init(void)
 {
     os_prio_init();
-    msg_pool_init();
+    os_msg_init();
+    os_timer_init();
 }
 
 void os_run(void)

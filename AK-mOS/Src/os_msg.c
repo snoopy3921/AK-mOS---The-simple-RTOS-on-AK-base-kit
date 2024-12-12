@@ -11,7 +11,7 @@ static msg_t msg_pool[OS_CFG_MSG_POOL_SIZE];
 static msg_t *free_list_msg_pool;
 static uint8_t msg_pool_used;
 
-void msg_pool_init(void)
+static void msg_pool_init(void)
 {
     ENTER_CRITICAL();
     uint8_t index;
@@ -33,6 +33,10 @@ void msg_pool_init(void)
     msg_pool_used = 0;
 
     EXIT_CRITICAL();
+}
+void os_msg_init(void)
+{
+    msg_pool_init();
 }
 
 void os_msg_free(msg_t *p_msg)
@@ -60,6 +64,7 @@ void os_msg_queue_init(msg_queue_t *p_msg_q,
 }
 
 void os_msg_queue_put_dynamic(msg_queue_t *p_msg_q,
+                              int32_t sig,
                               void *p_content,
                               uint8_t size)
 {
@@ -103,6 +108,7 @@ void os_msg_queue_put_dynamic(msg_queue_t *p_msg_q,
     }
 
     p_msg->type = MSG_TYPE_DYNAMIC;
+    p_msg->sig = sig;
     p_msg->size = size;
     p_msg->content_ptr = (uint8_t *)os_mem_malloc(size);
     memcpy(p_msg->content_ptr, p_content, size);
@@ -124,6 +130,7 @@ void os_msg_queue_put_pure(msg_queue_t *p_msg_q, int32_t sig)
     }
     if (msg_pool_used >= OS_CFG_MSG_POOL_SIZE)
     {
+        /* This states that u forget to free msg somewhere.*/
         // OSUniversalError = OS_ERR_MSG_POOL_IS_FULL;
         os_assert(0);
         EXIT_CRITICAL();

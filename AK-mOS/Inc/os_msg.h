@@ -29,7 +29,7 @@ extern "C"
         MSG_TYPE_DYNAMIC
     } msg_type_t;
 
-    typedef struct msg
+    struct msg
     {
         msg_t *next;
 
@@ -52,13 +52,13 @@ extern "C"
         uint8_t size_curr;
     };
 
-    void msg_pool_init(void);
+    void os_msg_init(void);
 
     void os_msg_free(msg_t *p_msg);
 
     void os_msg_queue_init(msg_queue_t *p_msg_q, uint8_t size);
 
-    void os_msg_queue_put_dynamic(msg_queue_t *p_msg_q, void *p_content, uint8_t size);
+    void os_msg_queue_put_dynamic(msg_queue_t *p_msg_q, int32_t sig, void *p_content, uint8_t size);
 
     void os_msg_queue_put_pure(msg_queue_t *p_msg_q, int32_t sig);
 
@@ -69,6 +69,7 @@ extern "C"
     msg_t *os_msg_queue_get_pure(msg_queue_t *p_msg_q);
 
     int32_t os_msg_get_pure_data(msg_t *p_msg);
+
 
 #ifdef __cplusplus
 }
