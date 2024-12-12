@@ -147,7 +147,7 @@ Kernel has one pool to store free messages. Firstly all the messages is kept in 
 - Dynamic msg contains pointer to data block and size of that data block
 APIs:
 ``` C
-  void os_task_post_msg_dynamic(uint8_t des_task_id, void *p_content, uint8_t msg_size);
+  void os_task_post_msg_dynamic(uint8_t des_task_id, int32_t sig, void *p_content, uint8_t msg_size);
 
   void os_task_post_msg_pure(uint8_t des_task_id, int32_t sig);
 
@@ -166,7 +166,7 @@ Post msg to another task, kernel doesn't support to post msg to self
 ``` C
   time[3] = {23, 15, 30}; //hour, min, second
 
-  os_task_post_msg_dynamic (TASK_DISPLAY_ID, (void *) &time, sizeof(time));
+  os_task_post_msg_dynamic (TASK_DISPLAY_ID, 0, (void *) &time, sizeof(time));
 ```
 
 Task can wait for msg with timeout or indefinitely (as it delays indefinitely). Retrieving msg from "os_task_wait_for_msg", msg could be NULL (timeout expired) or success.
