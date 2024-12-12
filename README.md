@@ -267,4 +267,5 @@ void EXTI0_IRQHandler(void)
 SYS_PRINT("	THE END!	");
 ```
 ## TODO:
-Add description about software timer.
+- Add description about software timer.
+- Trying to port to MIK32 (first russian microcontroller).
