@@ -46,7 +46,7 @@ extern "C"
     size_t stack_size;
   } task_t;
 
-	uint32_t os_task_get_tick(void);
+  uint32_t os_task_get_tick(void);
 	
   void os_task_create_list(task_t *task_tbl, uint8_t size);
 
