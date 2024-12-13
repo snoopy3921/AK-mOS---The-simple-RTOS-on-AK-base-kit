@@ -220,7 +220,92 @@ void task_display(void *p_arg)
 	}
 }
 ```
-### 4. Ending up in main file
+### 6. Software timer
+Kernel has one pool to store free timers. Firstly all the timers are kept in timer pool. 
+When kernel is initing, it automatically creates one more task for timer (as timer deamon in freeRTOS). The prio of that task configured in "os_cfg.h"
+Max num of timers is also configured in "os_cfg.h"
+
+``` C
+#define OS_CFG_TIMER_POOL_SIZE            (8u)  /* Max num of timer */
+#define OS_CFG_TIMER_TASK_PRI             (0u)  /* Recommend as high as possible */
+
+```
+
+
+APIs:
+``` C
+    /* These APIs run on other tasks, where they are calling*/
+    os_timer_t *os_timer_create(timer_id_t id, int32_t sig, timer_cb func_cb, uint8_t des_task_id, uint32_t period, timer_type_t type);
+
+    void os_timer_start(os_timer_t *p_timer, uint32_t tick_to_wait);
+    void os_timer_reset(os_timer_t *p_timer);
+    void os_timer_remove(os_timer_t *p_timer);
+```
+
+There are 2 types of timer
+``` C
+    typedef enum
+    {
+        TIMER_ONE_SHOT,
+        TIMER_PERIODIC
+    } timer_type_t;
+```
+- TIMER_ONE_SHOT executes 1 time and will be deleted after execution
+- TIMER_PERIODIC executes periodically till ``` os_timer_remove``` called.
+
+
+How to use:
+
+- Using timer to fire a signal to task 
+``` C
+void task_common(void *p_arg)
+{
+	/* This api will create timer, but it can not be used yet.
+	*  Timer has id: TIMER_ID
+	*  Timer has signal: REFRESH_SIGNAL
+	*  Timer has no callback function: NULL
+	*  Destination task: TASK_DISPLAY_ID
+	*  Timer is periodical with period = 500 ticks
+	*/
+	os_timer_t * p_timer1 = os_timer_create(TIMER_ID, REFRESH_SIGNAL, NULL, TASK_DISPLAY_ID, 500, TIMER_PERIODIC);
+
+	/* This api will make the timer that is created to run after 1000 ticks*/
+	os_timer_start(p_timer1, 1000);
+	for(;;)
+	{		
+
+	}
+}
+	
+```
+- Using timer with callback
+``` C
+static void blinky()
+{
+	led_life_toggle();
+}
+void task_common(void *p_arg)
+{
+	/* This api will create timer, but it can not be used yet.
+	*  Because of using with callback, we can ommit destination task id and signal.
+	*  Timer is periodical with period = 500 ticks
+	*/
+	os_timer_t * p_timer1 = os_timer_create(TIMER_ID, 0, blinky, 0, 500, TIMER_PERIODIC);
+
+	/* This api will make the timer that is created to run after 1000 ticks*/
+	os_timer_start(p_timer1, 1000);
+	for(;;)
+	{		
+
+	}
+}
+	
+```
+```Note:```
+If timer has callback function, it will ignore destination task and signal attached to that task. So to make sending signal runs, make sure callback function = NULL.
+
+
+### 5. Ending up in main file
 ``` C
 int main(void)
 {
@@ -240,7 +325,7 @@ int main(void)
 	}
 }
 ```
-### 5. Additional
+### 6. Additional
 Using interrupt by "deferred interrupt handling". It is better to create a interrupt task with a high enough priority that wait for signal (msg) from interrupt.
 ``` C
 #ifdef __cplusplus
