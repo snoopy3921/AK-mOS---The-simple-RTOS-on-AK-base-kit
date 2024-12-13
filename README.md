@@ -9,6 +9,10 @@ AK-mOS is a mini embedded operating system developed based on [freeRTOS](https:/
 - Inner tasks communiation
 - Software timer
 
+
+## Sample application using AK-mOS
+- [Runner game](https://github.com/snoopy3921/Runner-game)
+
 ## Port
 Kernel required tick interrupt and context switch (PendSV interrupt) to work properly. Both tick interrupt and context switch written for ARM Cortex-M3 only ([AK base kit](https://github.com/epcbtech/ak-base-kit-stm32l151) using Stm32L1). So it will also run fine on Stm32f1.
 
@@ -352,5 +356,5 @@ void EXTI0_IRQHandler(void)
 SYS_PRINT("	THE END!	");
 ```
 ## TODO:
-- Add description about software timer.
+- Add more sample projects.
 - Trying to port to MIK32 (first russian microcontroller).
