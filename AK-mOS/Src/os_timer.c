@@ -146,18 +146,8 @@ os_timer_t *os_timer_create(timer_id_t id, int32_t sig, timer_cb func_cb, uint8_
     p_timer->func_cb = func_cb;
     p_timer->des_task_id = des_task_id;
 
-    switch (type)
-    {
-    case TIMER_ONE_SHOT:
-        /* code */
-        p_timer->period = 0;
-        break;
-    case TIMER_PERIODIC:
-        p_timer->period = period;
-        break;
-    default:
-        break;
-    }
+    p_timer->period = (type == TIMER_PERIODIC) ? period : 0;
+    
     /* Make connection */
     os_list_item_init(&(p_timer->timer_list_item));
     list_item_set_owner(&(p_timer->timer_list_item), (void *)p_timer);
