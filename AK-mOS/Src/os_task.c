@@ -413,9 +413,6 @@ uint8_t os_task_increment_tick(void)
                 {
                     tcb_high_rdy_ptr = p_tcb;
                     is_switch_needed = OS_TRUE;
-
-                    /*Save state*/
-                    tcb_high_rdy_ptr->state = TASK_STATE_RUNNING;
                 }
             }
         }
@@ -426,11 +423,9 @@ uint8_t os_task_increment_tick(void)
     {
         tcb_high_rdy_ptr = list_get_owner_of_next_item(&(rdy_task_list[highest_prio]));
         is_switch_needed = OS_TRUE;
-
-        /*Save state*/
-        tcb_high_rdy_ptr->state = TASK_STATE_RUNNING;
     }
-
+    /*Save state*/
+    if(is_switch_needed == OS_TRUE) tcb_high_rdy_ptr->state = TASK_STATE_RUNNING;
     return is_switch_needed;
 }
 
