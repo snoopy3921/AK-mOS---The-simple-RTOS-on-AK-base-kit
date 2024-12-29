@@ -4,7 +4,6 @@
 #include "os_msg.h"
 #include "task_list.h"
 #include "os_list.h"
-#include "system.h"
 
 #define REF_TASK_TIMER_ID               ((task_id_t)OS_CFG_NUM_OF_TASKS_MAX - 2u)
 
@@ -130,7 +129,7 @@ os_timer_t *os_timer_create(timer_id_t id, int32_t sig, timer_cb func_cb, uint8_
         os_assert(0);
         return NULL;
     }
-    if (period == 0u && type == TIMER_PERIODIC)
+    if (period == 0u)
     {
         // OSUniversalError = OS_ERR_TIMER_NOT_ACECPT_ZERO_PERIOD;
         os_assert(0);
@@ -146,8 +145,10 @@ os_timer_t *os_timer_create(timer_id_t id, int32_t sig, timer_cb func_cb, uint8_
     p_timer->func_cb = func_cb;
     p_timer->des_task_id = des_task_id;
 
-    p_timer->period = (type == TIMER_PERIODIC) ? period : 0;
-    
+    p_timer->type = type;
+
+    p_timer->period = period;
+
     /* Make connection */
     os_list_item_init(&(p_timer->timer_list_item));
     list_item_set_owner(&(p_timer->timer_list_item), (void *)p_timer);
@@ -216,9 +217,11 @@ void os_timer_processing()
                     p_timer->func_cb();
                 else
                     os_task_post_msg_pure(p_timer->des_task_id, p_timer->sig);
-                if (p_timer->period != 0)
+                if (p_timer->type == TIMER_PERIODIC)
                 {
+                    ENTER_CRITICAL();
                     list_item_set_value(&(p_timer->timer_list_item), p_timer->period + time_now);
+                    EXIT_CRITICAL();
                     add_timer_to_list(p_timer);
                 }
                 else
@@ -237,7 +240,17 @@ void os_timer_start(os_timer_t *p_timer, uint32_t tick_to_wait)
 {
     uint32_t time_now = os_task_get_tick();
 
-    list_item_set_value(&(p_timer->timer_list_item), tick_to_wait + time_now);
+    switch (p_timer->type)
+    {
+    case TIMER_ONE_SHOT:
+        ENTER_CRITICAL();
+        list_item_set_value(&(p_timer->timer_list_item), tick_to_wait + time_now + p_timer->period);
+        EXIT_CRITICAL();
+        break;
+    case TIMER_PERIODIC:
+        list_item_set_value(&(p_timer->timer_list_item), tick_to_wait + time_now);
+        break;
+    }
 
     add_timer_to_list(p_timer);
     update_next_tick_to_unblock();
@@ -254,13 +267,19 @@ void os_timer_reset(os_timer_t *p_timer)
     }
     uint32_t time_now = os_task_get_tick();
     os_list_remove(&(p_timer->timer_list_item));
-    if (p_timer->period != 0)
-    {
-        list_item_set_value(&(p_timer->timer_list_item), p_timer->period + time_now);
-        add_timer_to_list(p_timer);
-    }
-    else
-        os_timer_remove(p_timer); /* One shot */
+    
+    ENTER_CRITICAL();
+    list_item_set_value(&(p_timer->timer_list_item), time_now + p_timer->period);
+    EXIT_CRITICAL();
+    add_timer_to_list(p_timer);
+
     update_next_tick_to_unblock();
     os_task_post_msg_pure(REF_TASK_TIMER_ID, 0); // Dummy signal
+}
+
+void os_timer_set_period(os_timer_t *p_timer, uint32_t period)
+{   
+    ENTER_CRITICAL();
+    p_timer->period = period;
+    EXIT_CRITICAL();
 }
