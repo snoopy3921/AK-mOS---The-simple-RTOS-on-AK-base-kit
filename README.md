@@ -232,6 +232,7 @@ void task_display(void *p_arg)
 	}
 }
 ```
+```msg = os_task_wait_for_msg(0);```  Get msg whenever msg available with 0ms
 ### 6. Software timer
 Kernel has one pool to store free timers. Firstly all the timers are kept in timer pool. 
 When kernel is initing, it automatically creates one more task for timer (as timer deamon in freeRTOS). The prio of that task configured in "os_cfg.h"
