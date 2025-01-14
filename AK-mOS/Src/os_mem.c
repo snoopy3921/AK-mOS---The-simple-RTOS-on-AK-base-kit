@@ -34,7 +34,7 @@ static void os_mem_heap_init(void)
 {
 	uint32_t total_heap_size = OS_CFG_HEAP_SIZE;
 	uint32_t heap_addr = (uint32_t)mem_heap;
-	if (heap_addr & ALIGNMENT != 0) /* If address of heap memory is not alligned	*/
+	if ((heap_addr & (ALIGNMENT - 1)) != 0) /* If address of heap memory is not alligned	*/
 	{
 		heap_addr += (ALIGNMENT - 1);
 		heap_addr &= ALIGNMENT;
@@ -186,9 +186,7 @@ void os_mem_free(void *p_addr)
 	}
 	return;
 }
-#endif
-
-#if 0
+#else
 void *os_mem_malloc(size_t size)
 {
 	uint32_t * p_return = malloc(size);
