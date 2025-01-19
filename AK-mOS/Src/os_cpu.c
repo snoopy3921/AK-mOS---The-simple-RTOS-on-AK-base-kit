@@ -2,6 +2,13 @@
 #include "os_task.h"
 #include "os_kernel.h"
 
+
+#include "stm32l1xx.h"
+#include "stm32l1xx_conf.h"
+#include "system_stm32l1xx.h"
+#include "core_cm3.h"
+#include "core_cmFunc.h"
+
 /*Passing SystemCoreClock to init tick at every 1ms*/
 void os_cpu_systick_init_freq(uint32_t cpu_freq)
 {

@@ -5,14 +5,10 @@
 #include "os_timer.h"
 #include "os_prio.h"
 #include "os_task.h"
-//#include "system.h"
+#include "os_log.h"
+#include "task_list.h"
 
 static uint16_t critical_nesting_count = (uint16_t)0u;
-
-void assert_log(uint8_t *file, uint32_t line)
-{
-    //SYS_PRINT("Assert failed at file: %s:%d\n", file, line);
-}
 
 void os_critical_enter(void)
 {
@@ -22,7 +18,7 @@ void os_critical_enter(void)
 
 void os_critical_exit(void)
 {
-    os_assert(critical_nesting_count);
+    os_assert(critical_nesting_count, "NESTING CRITICAL UNBALANCED");
     critical_nesting_count--;
     if (critical_nesting_count == 0)
     {
@@ -50,6 +46,12 @@ os_start_first_task(void)
 
 void os_init(void)
 {
+    if (TASK_EOT_ID < 1u)
+    {
+        LOG_ERROR("OS_ERR_NO_TASK_AVAILABLE - Entering while loop");
+        DISABLE_INTERRUPTS
+        while(1);
+    }
     os_prio_init();
     os_msg_init();
     os_timer_init();

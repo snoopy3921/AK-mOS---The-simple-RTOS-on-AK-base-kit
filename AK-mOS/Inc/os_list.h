@@ -24,15 +24,15 @@ extern "C"
 	{
 		struct list_item *next_ptr; /* Pointer to NextItem*/
 		struct list_item *prev_ptr; /* Pointer to PrevItem*/
-		uint32_t value;				/* Value of this item*/
-		void *owner_ptr;			/*Owner of this item (TCB usually)*/
-		struct list *list_ptr;		/* Pointer to the list in which this list item is placed (if any). */
+		uint32_t value;		    /* Value of this item*/
+		void *owner_ptr;		    /*Owner of this item (TCB usually)*/
+		struct list *list_ptr;	    /* Pointer to the list in which this list item is placed (if any). */
 	};
 
 	struct list
 	{
 		struct list_item *curr_item_ptr; /* Used to walk through the list in round-robin case */
-		struct list_item end_item;		 /* Used to mark the end of list */
+		struct list_item end_item;	   /* Used to mark the end of list */
 		uint16_t num_of_items;
 	};
 

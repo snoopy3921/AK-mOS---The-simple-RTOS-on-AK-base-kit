@@ -5,7 +5,7 @@
 #include "task_list.h"
 #include "os_list.h"
 
-#define REF_TASK_TIMER_ID               ((task_id_t)OS_CFG_NUM_OF_TASKS_MAX - 2u)
+#define REF_TASK_TIMER_ID               ((task_id_t)TASK_EOT_ID + 1u)
 
 static os_timer_t timer_pool[OS_CFG_TIMER_POOL_SIZE];
 static os_timer_t *free_list_timer_pool;
@@ -114,25 +114,25 @@ os_timer_t *os_timer_create(timer_id_t id, int32_t sig, timer_cb func_cb, uint8_
     if (des_task_id > (TASK_EOT_ID - 1U))
     {
         // OSUniversalError = OS_ERR_DES_TASK_ID_INVALID;
-        os_assert(0);
+        os_assert(0, "OS_ERR_DES_TASK_ID_INVALID");
         return NULL;
     }
     if (des_task_id == REF_TASK_TIMER_ID)
     {
         // OSUniversalError = OS_ERR_CAN_NOT_SET_DES_TO_ITSELF;
-        os_assert(0);
+        os_assert(0, "OS_ERR_CAN_NOT_SET_DES_TO_ITSELF");
         return NULL;
     }
     if (timer_pool_used >= OS_CFG_TIMER_POOL_SIZE)
     {
         // OSUniversalError = OS_ERR_TIMER_POOL_IS_FULL;
-        os_assert(0);
+        os_assert(0, "OS_ERR_TIMER_POOL_IS_FULL");
         return NULL;
     }
-    if (period == 0u)
+    if (period == 0u && type == TIMER_PERIODIC)
     {
         // OSUniversalError = OS_ERR_TIMER_NOT_ACECPT_ZERO_PERIOD;
-        os_assert(0);
+        os_assert(0, "OS_ERR_TIMER_NOT_ACECPT_ZERO_PERIOD");
         return NULL;
     }
     os_timer_t *p_timer;
@@ -145,10 +145,18 @@ os_timer_t *os_timer_create(timer_id_t id, int32_t sig, timer_cb func_cb, uint8_
     p_timer->func_cb = func_cb;
     p_timer->des_task_id = des_task_id;
 
-    p_timer->type = type;
-
-    p_timer->period = period;
-
+    switch (type)
+    {
+    case TIMER_ONE_SHOT:
+        /* code */
+        p_timer->period = 0;
+        break;
+    case TIMER_PERIODIC:
+        p_timer->period = period;
+        break;
+    default:
+        break;
+    }
     /* Make connection */
     os_list_item_init(&(p_timer->timer_list_item));
     list_item_set_owner(&(p_timer->timer_list_item), (void *)p_timer);
@@ -217,11 +225,9 @@ void os_timer_processing()
                     p_timer->func_cb();
                 else
                     os_task_post_msg_pure(p_timer->des_task_id, p_timer->sig);
-                if (p_timer->type == TIMER_PERIODIC)
+                if (p_timer->period != 0)
                 {
-                    ENTER_CRITICAL();
                     list_item_set_value(&(p_timer->timer_list_item), p_timer->period + time_now);
-                    EXIT_CRITICAL();
                     add_timer_to_list(p_timer);
                 }
                 else
@@ -240,17 +246,7 @@ void os_timer_start(os_timer_t *p_timer, uint32_t tick_to_wait)
 {
     uint32_t time_now = os_task_get_tick();
 
-    switch (p_timer->type)
-    {
-    case TIMER_ONE_SHOT:
-        ENTER_CRITICAL();
-        list_item_set_value(&(p_timer->timer_list_item), tick_to_wait + time_now + p_timer->period);
-        EXIT_CRITICAL();
-        break;
-    case TIMER_PERIODIC:
-        list_item_set_value(&(p_timer->timer_list_item), tick_to_wait + time_now);
-        break;
-    }
+    list_item_set_value(&(p_timer->timer_list_item), tick_to_wait + time_now);
 
     add_timer_to_list(p_timer);
     update_next_tick_to_unblock();
@@ -262,24 +258,18 @@ void os_timer_reset(os_timer_t *p_timer)
     if (list_item_get_list_contain(&(p_timer->timer_list_item)) == NULL)
     {
         // OSUniversalError = OS_ERR_TIMER_IS_NOT_RUNNING;
-        os_assert(0);
+        os_assert(0, "OS_ERR_TIMER_IS_NOT_RUNNING");
         return;
     }
     uint32_t time_now = os_task_get_tick();
     os_list_remove(&(p_timer->timer_list_item));
-    
-    ENTER_CRITICAL();
-    list_item_set_value(&(p_timer->timer_list_item), time_now + p_timer->period);
-    EXIT_CRITICAL();
-    add_timer_to_list(p_timer);
-
+    if (p_timer->period != 0)
+    {
+        list_item_set_value(&(p_timer->timer_list_item), p_timer->period + time_now);
+        add_timer_to_list(p_timer);
+    }
+    else
+        os_timer_remove(p_timer); /* One shot */
     update_next_tick_to_unblock();
     os_task_post_msg_pure(REF_TASK_TIMER_ID, 0); // Dummy signal
-}
-
-void os_timer_set_period(os_timer_t *p_timer, uint32_t period)
-{   
-    ENTER_CRITICAL();
-    p_timer->period = period;
-    EXIT_CRITICAL();
 }

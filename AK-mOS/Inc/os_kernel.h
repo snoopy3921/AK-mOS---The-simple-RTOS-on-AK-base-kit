@@ -17,6 +17,7 @@ extern "C"
 #endif
 
 #include "os_cfg.h"
+#include "os_log.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -28,9 +29,7 @@ extern "C"
 #define OS_TRUE             ((uint8_t)1)
 #define OS_FALSE            ((uint8_t)0)
 
-#define os_assert(exp)      ((exp) ? (void)0 : assert_log((uint8_t *)__FILE__, __LINE__))
-
-    extern void assert_log(uint8_t *file, uint32_t line);
+#define os_assert(exp, err)      ((exp) ? (void)0 : LOG_ASSERT("%s", err))
 
     extern void os_critical_enter(void);
     extern void os_critical_exit(void);

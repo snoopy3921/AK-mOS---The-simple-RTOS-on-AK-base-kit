@@ -1,7 +1,6 @@
 #include "os_msg.h"
 #include "os_mem.h"
 #include "os_kernel.h"
-#include "system.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -74,14 +73,14 @@ void os_msg_queue_put_dynamic(msg_queue_t *p_msg_q,
     if (p_msg_q->size_curr >= p_msg_q->size_max)
     {
         // OSUniversalError = OS_ERR_MSG_QUEUE_IS_FULL;
-        os_assert(0);
+        os_assert(0, "OS_ERR_MSG_QUEUE_IS_FULL");
         EXIT_CRITICAL();
         return;
     }
     if (msg_pool_used >= OS_CFG_MSG_POOL_SIZE)
     {
         // OSUniversalError = OS_ERR_MSG_POOL_IS_FULL;
-        os_assert(0);
+        os_assert(0, "OS_ERR_MSG_POOL_IS_FULL");
         EXIT_CRITICAL();
         return;
     }
@@ -124,7 +123,7 @@ void os_msg_queue_put_pure(msg_queue_t *p_msg_q, int32_t sig)
     if (p_msg_q->size_curr >= p_msg_q->size_max)
     {
         // OSUniversalError = OS_ERR_MSG_QUEUE_IS_FULL;
-        os_assert(0);
+        os_assert(0, "OS_ERR_MSG_QUEUE_IS_FULL");
         EXIT_CRITICAL();
         return;
     }
@@ -132,7 +131,7 @@ void os_msg_queue_put_pure(msg_queue_t *p_msg_q, int32_t sig)
     {
         /* This states that u forget to free msg somewhere.*/
         // OSUniversalError = OS_ERR_MSG_POOL_IS_FULL;
-        os_assert(0);
+        os_assert(0, "OS_ERR_MSG_POOL_IS_FULL");
         EXIT_CRITICAL();
         return;
     }

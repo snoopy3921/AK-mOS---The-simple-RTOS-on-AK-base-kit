@@ -39,7 +39,6 @@ extern "C"
         timer_cb func_cb; /* Callback funtion runs on timer task, !!! keep it short and simple as in interrupt*/
 
         uint32_t period; /* In case one-shot timer, this field equals 0 */
-        timer_type_t type;
     };
 
     void os_timer_init(void); /* Runs on kernel init */
@@ -48,8 +47,6 @@ extern "C"
 
     /* These APIs run on other tasks, where they are calling*/
     os_timer_t *os_timer_create(timer_id_t id, int32_t sig, timer_cb func_cb, uint8_t des_task_id, uint32_t period, timer_type_t type);
-
-    void os_timer_set_period(os_timer_t *p_timer, uint32_t period);
 
     void os_timer_start(os_timer_t *p_timer, uint32_t tick_to_wait);
     void os_timer_reset(os_timer_t *p_timer);

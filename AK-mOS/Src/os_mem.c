@@ -11,10 +11,11 @@
 #include "os_cfg.h"
 #include "os_mem.h"
 #include "os_kernel.h"
-#include "system.h"
 #include <stdio.h>
 #include <stdlib.h>
 
+
+#if 1
 #define ALIGNMENT 		((size_t)4u) // must be a power of 2
 
 #define mem_align(size) 	(size_t)(((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
@@ -29,7 +30,7 @@ static mem_blk_header_t *mem_blk_end_ptr = NULL;
 
 static uint32_t byte_available = 0;
 
-#if 1
+
 static void os_mem_heap_init(void)
 {
 	uint32_t total_heap_size = OS_CFG_HEAP_SIZE;
@@ -62,6 +63,7 @@ void *os_mem_malloc(size_t size)
 	size = mem_align(size);
 	if (size == 0 || size > byte_available)
 	{
+		os_assert(0, "OS_ERR_MEM_INVALID_SIZE");
 		return p_return; // Invalid size
 	}
 
@@ -82,6 +84,7 @@ void *os_mem_malloc(size_t size)
 		{
 			if (p_block == mem_blk_end_ptr && p_block->size < size)
 			{
+				os_assert(0, "OS_ERR_MEM_NO_BLOCK");
 				return (void *)p_return; // No block available
 			}
 
@@ -116,9 +119,11 @@ void *os_mem_malloc(size_t size)
 		}
 		else
 		{
+			os_assert(0, "OS_ERR_MEM_BLOCK_NULL");
 			/* MEM_FAULT (p_block null) */
 		}
 	}
+	return (void *) p_return;
 }
 
 void os_mem_free(void *p_addr)
@@ -129,11 +134,13 @@ void os_mem_free(void *p_addr)
 	}
 	if (((uint8_t *)p_addr) > ((uint8_t *)mem_blk_end_ptr + SIZE_OF_BLOCK_HEADER + mem_blk_end_ptr->size))
 	{
+		os_assert(0, "OS_ERR_MEM_INVALID_ADDRESS");
 		return; // Invalid address
 	}
 
-	if (((uint8_t *)p_addr) - SIZE_OF_BLOCK_HEADER < mem_blk_start.next_ptr)
+	if ((size_t)(((uint8_t *)p_addr) - SIZE_OF_BLOCK_HEADER) < (size_t)mem_blk_start.next_ptr)
 	{
+		os_assert(0, "OS_ERR_MEM_INVALID_ADDRESS");
 		return; // Invalid address
 	}
 	else
@@ -171,7 +178,7 @@ void os_mem_free(void *p_addr)
 			}
 
 			// Merge the prev block
-			if (p_prev_block->state == MEM_STATE_FREE && (uint8_t *)p_prev_block != &mem_blk_start)
+			if (p_prev_block->state == MEM_STATE_FREE && (uint8_t *)p_prev_block != (uint8_t*)&mem_blk_start)
 			{
 				byte_available += SIZE_OF_BLOCK_HEADER;
 
@@ -181,11 +188,13 @@ void os_mem_free(void *p_addr)
 		}
 		else
 		{
+			os_assert(0, "OS_ERR_MEM_INVALID_ADDRESS");
 			return; // Invalid address
 		}
 	}
 	return;
 }
+
 #else
 void *os_mem_malloc(size_t size)
 {

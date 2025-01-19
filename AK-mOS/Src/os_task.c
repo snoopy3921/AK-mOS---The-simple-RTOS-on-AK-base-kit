@@ -6,7 +6,7 @@
 #include "os_prio.h"
 #include "os_cpu.h"
 #include <string.h>
-#include "system.h"
+#include "task_list.h"
 
 /* For strict compliance with the Cortex-M spec the task start address should
 have bit-0 clear, as it is loaded into the PC on exit from an ISR. */
@@ -15,11 +15,11 @@ have bit-0 clear, as it is loaded into the PC on exit from an ISR. */
 /* Constants required to set up the initial stack. */
 #define VALUE_INITIAL_XPSR          (0x01000000)
 
-#define TASK_IDLE_ID                ((task_id_t)OS_CFG_NUM_OF_TASKS_MAX - 1u)
+#define TASK_IDLE_ID                ((task_id_t)TASK_EOT_ID)
 
 #define TASK_IDLE_PRI               (OS_CFG_PRIO_MAX - 1u)
 
-#define TASK_TIMER_ID               ((task_id_t)OS_CFG_NUM_OF_TASKS_MAX - 2u)
+#define TASK_TIMER_ID               ((task_id_t)TASK_EOT_ID + 1u)
 
 #define TASK_TIMER_PRI              ((uint8_t)OS_CFG_TIMER_TASK_PRI) 
 
@@ -30,7 +30,9 @@ typedef struct task_tcb task_tcb_t;
 
 #define SIZE_OF_TCB                 (sizeof(task_tcb_t))
 
-static task_tcb_t *task_tcb_list[OS_CFG_NUM_OF_TASKS_MAX]; /*< Holds the list of task tcb. */
+
+static task_tcb_t *task_tcb_list[TASK_EOT_ID + 2u]; /*< Holds the list of task tcb. */
+
 
 task_tcb_t *volatile tcb_curr_ptr = NULL;
 task_tcb_t *volatile tcb_high_rdy_ptr = NULL;
@@ -228,31 +230,25 @@ static task_tcb_t *os_task_create(task_id_t id,
     if (sched_is_running == OS_TRUE)
     {
         // OSUniversalError = OS_ERR_SCHED_IS_RUNNING;
-        os_assert(0);
+        os_assert(0, "OS_ERR_SCHED_IS_RUNNING");
         return NULL;
     }
     if (prio > (OS_CFG_PRIO_MAX - 1U))
     {
         // OSUniversalError = OS_ERR_TCB_PRIO_INVALID;
-        os_assert(0);
+        os_assert(0, "OS_ERR_TCB_PRIO_INVALID");
         return NULL;
     }
     if (pf_task == NULL)
     {
         // OSUniversalError = OS_ERR_TCB_FUNC_INVALID;
-        os_assert(0);
+        os_assert(0, "OS_ERR_TCB_FUNC_INVALID");
         return NULL;
     }
     if (stack_size < OS_CFG_TASK_STK_SIZE_MIN)
     {
         // OSUniversalError = OS_ERR_TCB_STK_SIZE_INVALID;
-        os_assert(0);
-        return NULL;
-    }
-    if (num_of_tasks > OS_CFG_NUM_OF_TASKS_MAX - 1)
-    {
-        // OSUniversalError = OS_ERR_EXCEED_MAX_TASK_NUM;
-        os_assert(0);
+        os_assert(0, "OS_ERR_TCB_STK_SIZE_INVALID");
         return NULL;
     }
     
@@ -275,14 +271,14 @@ static task_tcb_t *os_task_create(task_id_t id,
         {
             os_mem_free(p_stack);
             // OSUniversalError = OS_ERR_TCB_NOT_ENOUGH_MEM_ALLOC;
-            os_assert(0);
+            os_assert(0, "OS_ERR_TCB_NOT_ENOUGH_MEM_ALLOC");
             return NULL;
         }
     }
     else
     {
         // OSUniversalError = OS_ERR_TCB_NOT_ENOUGH_MEM_ALLOC;
-        os_assert(0);
+        os_assert(0, "OS_ERR_TCB_NOT_ENOUGH_MEM_ALLOC");
         return NULL;
     }
 
@@ -426,6 +422,7 @@ uint8_t os_task_increment_tick(void)
     }
     /*Save state*/
     if(is_switch_needed == OS_TRUE) tcb_high_rdy_ptr->state = TASK_STATE_RUNNING;
+    
     return is_switch_needed;
 }
 
@@ -455,7 +452,7 @@ void os_task_post_msg_dynamic(uint8_t des_task_id, int32_t sig, void *p_content,
     if (task_tcb_list[des_task_id] == tcb_curr_ptr)
     {
         // OSUniversalError = OS_ERR_TASK_POST_MSG_TO_ITSELF;
-        os_assert(0);
+        os_assert(0, "OS_ERR_TASK_POST_MSG_TO_ITSELF");
         EXIT_CRITICAL();
         return;
     }
@@ -524,13 +521,15 @@ void os_task_post_msg_dynamic(uint8_t des_task_id, int32_t sig, void *p_content,
 void os_task_post_msg_pure(uint8_t des_task_id, int32_t sig)
 {
     ENTER_CRITICAL();
+#if 0 /* Under testing */
     if (task_tcb_list[des_task_id] == tcb_curr_ptr)
     {
         // OSUniversalError = OS_ERR_TASK_POST_MSG_TO_ITSELF;
-        os_assert(0);
+        os_assert(0, "OS_ERR_TASK_POST_MSG_TO_ITSELF");
         EXIT_CRITICAL();
         return;
     }
+#endif
     switch (task_tcb_list[des_task_id]->state)
     {
     case TASK_STATE_SUSPENDED_ON_MSG:

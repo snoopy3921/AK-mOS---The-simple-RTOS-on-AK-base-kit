@@ -122,9 +122,11 @@ void *list_get_owner_of_next_item(list_t *const p_list)
     /* Increment the index to the next item and return the item, ensuring */
     /* we don't return the marker used at the end of the list.  */
     (p_const_list)->curr_item_ptr = (p_const_list)->curr_item_ptr->next_ptr;
+
     if ((void *)(p_const_list)->curr_item_ptr == (void *)&((p_const_list)->end_item))
     {
         (p_const_list)->curr_item_ptr = (p_const_list)->curr_item_ptr->next_ptr;
     }
+
     return (p_const_list)->curr_item_ptr->owner_ptr;
 }

@@ -1,11 +1,9 @@
 #include "os_prio.h"
-#include "system.h"
 static uint32_t prio_curr;
 static uint8_t prio_tbl[OS_PRIO_TBL_SIZE];
 
 void os_prio_init()
 {
-    SYS_PRINT("OS_PRIO_TBL_SIZE is: %d\n", (uint32_t)OS_PRIO_TBL_SIZE);
     uint8_t i;
     for (i = 0u; i < OS_PRIO_TBL_SIZE; i++)
     {
