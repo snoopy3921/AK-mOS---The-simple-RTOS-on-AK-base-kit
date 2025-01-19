@@ -6,7 +6,7 @@
 AK-mOS is a mini embedded operating system developed based on [freeRTOS](https://github.com/FreeRTOS/FreeRTOS-Kernel) which has the following features:
 - Preemptive scheduling
 - Round-robin scheduling
-- Inner tasks communiation
+- Inter-task communiation
 - Software timer
 
 
